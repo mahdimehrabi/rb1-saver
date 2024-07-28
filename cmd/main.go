@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/rabbitmq/amqp091-go"
@@ -30,7 +29,7 @@ func main() {
 	FatalOnError(err)
 
 	for _, t := range env.ScrapTopics {
-		err = ch.QueueBind(q.Name, "scrap."+t, env.ImageExchange, false, nil)
+		err = ch.QueueBind(q.Name, "downloaded."+t, env.ImageExchange, false, nil)
 		FatalOnError(err)
 	}
 
@@ -39,15 +38,7 @@ func main() {
 		Secure: false,
 	})
 	FatalOnError(err)
-	err = minioClient.MakeBucket(context.Background(), "images", minio.MakeBucketOptions{})
-	if err != nil {
-		exists, errBucketExists := minioClient.BucketExists(context.Background(), "images")
-		if errBucketExists == nil && exists {
-			logger.Info("we already have a bucket named %s", env.ImageExchange)
-		} else {
-			log.Fatal(err)
-		}
-	}
+
 	c := make(chan bool)
 	saver := service.NewSaver(minioClient, logger, ch, env.QueueName, "images")
 	if err := saver.Setup(); err != nil {
