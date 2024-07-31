@@ -74,12 +74,13 @@ func (s *Saver) Save(msg amqp091.Delivery) {
 		return
 	}
 
-	dir = path.Join(dir, "images", image.Name+".jpg")
+	dir = path.Join(dir, "images")
 	if err := os.MkdirAll(dir, os.ModePerm); err != nil && !errors.Is(err, os.ErrExist) {
 		s.handleError(msg, "Error creating directory:%s", err)
 		return
 	}
-	f, err := os.OpenFile(dir, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, os.ModePerm)
+	filePath := path.Join(dir, image.Name+".jpg")
+	f, err := os.OpenFile(filePath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, os.ModePerm)
 	if err != nil {
 		s.handleError(msg, "Error opening directory:%s", err)
 		return
